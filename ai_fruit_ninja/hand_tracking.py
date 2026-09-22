@@ -4,7 +4,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 class HandTracker:
-    def __init__(self, mode=False, max_hands=2, detection_con=0.7, track_con=0.7):
+    def __init__(self, mode=False, max_hands=2, detection_con=0.4, track_con=0.4):
         self.max_hands = max_hands
         
         base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
@@ -29,13 +29,13 @@ class HandTracker:
         # We don't draw the skeleton since the game draws blade trails instead.
         return img
         
-    def get_index_fingers(self, img):
-        """Returns a list of (x,y) coordinates for the index finger tips."""
+    def get_hand_centers(self, img):
+        """Returns a list of (x,y) coordinates for the center of the palm."""
         positions = []
         if self.results and self.results.hand_landmarks:
             for hand_landmarks in self.results.hand_landmarks:
-                # Landmark 8 is the tip of the index finger
-                lm = hand_landmarks[8]
+                # Landmark 9 is the middle finger MCP (basically the center of the palm/knuckles)
+                lm = hand_landmarks[9]
                 h, w, c = img.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 positions.append((cx, cy))

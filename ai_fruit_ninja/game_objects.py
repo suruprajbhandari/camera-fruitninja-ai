@@ -44,13 +44,37 @@ class Fruit:
         # Returns True if it falls completely past the bottom of the screen
         return self.y > self.screen_h + self.radius * 2
 
-    def check_slice(self, finger_x, finger_y):
+    def check_slice_line(self, p1, p2, blade_radius=40):
         if self.is_sliced:
             return False
             
-        # Distance formula to check if finger is inside the circle
-        dist = math.hypot(self.x - finger_x, self.y - finger_y)
-        if dist < self.radius:
+        x1, y1 = p1
+        x2, y2 = p2
+        cx, cy = self.x, self.y
+        # Total collision radius is the fruit's radius PLUS the hand's radius
+        r = self.radius + blade_radius
+        
+        # 1. Check if either point is inside the circle (slow swipe)
+        if math.hypot(x1 - cx, y1 - cy) < r or math.hypot(x2 - cx, y2 - cy) < r:
             self.is_sliced = True
             return True
+            
+        # 2. Check if the line segment between the two frames crossed the circle (fast swipe)
+        dx = x2 - x1
+        dy = y2 - y1
+        length_sq = dx*dx + dy*dy
+        
+        if length_sq == 0:
+            return False
+            
+        # Find the closest point on the line segment to the center of the fruit
+        t = max(0, min(1, ((cx - x1) * dx + (cy - y1) * dy) / length_sq))
+        closest_x = x1 + t * dx
+        closest_y = y1 + t * dy
+        
+        # If the closest point is inside the total radius, it was a slice!
+        if math.hypot(closest_x - cx, closest_y - cy) < r:
+            self.is_sliced = True
+            return True
+            
         return False
